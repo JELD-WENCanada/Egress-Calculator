@@ -1,0 +1,163 @@
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Egress Window Calculator (Canada)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .egress-calculator {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .egress-calculator img {
+            display: block;
+            margin: 0 auto 20px;
+            max-width: 200px;
+            height: auto;
+        }
+
+        .egress-calculator h2 {
+            color: #1d446b;
+            text-align: center;
+        }
+
+        .egress-calculator label {
+            margin-top: 10px;
+            font-weight: bold;
+            display: block;
+        }
+
+        .egress-calculator input,
+        .egress-calculator select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .egress-calculator button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background-color: #1d446b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .egress-calculator button:hover {
+            background-color: #c5b282;
+        }
+
+        .egress-calculator .result {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .egress-calculator .result span {
+            display: block;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .egress-calculator {
+                padding: 15px;
+            }
+
+            .egress-calculator button {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="egress-calculator">
+        <img src="/-/media/596A1A80D9C9477EB0A2BDFD022D5DB3.ashx" alt="JELD-WEN Logo" width="250" height="90" />
+        <h2>Canadian Egress Window Calculator</h2>
+
+        <label for="windowType">Window Type:</label>
+        <select id="windowType">
+            <option value="casement">Casement</option>
+            <option value="slider">Slider</option>
+            <option value="awning">Awning</option>
+            <option value="single-hung">Single Hung</option>
+            <option value="double-hung">Double Hung</option>
+            <option value="tilt-turn">Tilt & Turn</option>
+            <option value="fixed">Fixed</option>
+        </select>
+
+        <label for="width">Width (inches):</label>
+        <input type="number" id="width" min="0" step="0.1" />
+
+        <label for="height">Height (inches):</label>
+        <input type="number" id="height" min="0" step="0.1" />
+
+        <button onclick="egressCalculate()">Check Egress Compliance</button>
+        <div class="result" id="egress-result"></div>
+    </div>
+
+    <script>
+        function egressCalculate() {
+            const width = parseFloat(document.querySelector('.egress-calculator #width').value);
+            const height = parseFloat(document.querySelector('.egress-calculator #height').value);
+            const type = document.querySelector('.egress-calculator #windowType').value;
+            const result = document.querySelector('.egress-calculator #egress-result');
+
+            if (!width || !height) {
+                result.textContent = "Please enter both width and height.";
+                return;
+            }
+
+            let effectiveWidth = width;
+            let effectiveHeight = height;
+
+            if (["slider", "single-hung", "double-hung"].includes(type)) {
+                effectiveWidth = width / 2;
+            }
+
+            const areaInSqInches = effectiveWidth * effectiveHeight;
+            const areaInSqFeet = areaInSqInches / 144;
+            const minAreaInSqInches = 543.6;
+            const minDimension = 15;
+
+            const meetsArea = areaInSqInches >= minAreaInSqInches;
+            const meetsDimension = effectiveWidth >= minDimension && effectiveHeight >= minDimension;
+
+            let complianceMessage = "";
+
+            if (type === "fixed") {
+                complianceMessage = "<span style='color:red'>❌ Fixed windows cannot be used for egress.</span>";
+            } else if (type === "awning") {
+                complianceMessage = "<span style='color:orange'>⚠️ Awning windows may not meet egress requirements due to limited opening clearance.</span>";
+            } else if (meetsArea && meetsDimension) {
+                complianceMessage = "<span style='color:green'>✅ Meets Canadian egress requirements (NBC 2020).</span>";
+            } else {
+                complianceMessage = "<span style='color:red'>❌ Does NOT meet Canadian egress requirements (NBC 2020).</span>";
+            }
+
+            result.innerHTML = `
+                <strong>Window Type:</strong> ${type.replace("-", " ")}<br>
+                <strong>Effective Opening:</strong> ${effectiveWidth.toFixed(1)}" x ${effectiveHeight.toFixed(1)}"<br>
+                <strong>Clear Opening Area:</strong> ${areaInSqInches.toFixed(2)} in² (${areaInSqFeet.toFixed(2)} ft²)<br>
+                ${complianceMessage}
+            `;
+        }
+    </script>
+</body>
+</html>
