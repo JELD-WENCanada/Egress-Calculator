@@ -4,23 +4,35 @@
 <head>
     <meta charset="UTF-8">
     <title>Egress Window Calculator (Canada)</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <style>
-        .egress-calculator {
+        /* Global box-sizing for consistent layout */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
             font-family: Arial, sans-serif;
             background-color: #f9f9f9;
+        }
+
+        .egress-calculator {
+            background-color: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            max-width: 900px;
-            width: 90%;
-            margin: auto;
+            max-width: 600px;
+            width: 100%;
+            margin: 20px auto;
         }
 
         .egress-calculator img {
             display: block;
             margin: 0 auto 20px;
-            max-width: 200px;
+            max-width: 100%;
             height: auto;
         }
 
@@ -49,7 +61,6 @@
             margin-top: 5px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            box-sizing: border-box;
         }
 
         .egress-calculator button {
@@ -109,6 +120,22 @@
             visibility: visible;
             opacity: 1;
         }
+
+        @media (max-width: 600px) {
+            .egress-calculator {
+                padding: 15px;
+            }
+
+            .egress-calculator input,
+            .egress-calculator select,
+            .egress-calculator button {
+                font-size: 16px;
+            }
+
+            .egress-calculator .result {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -116,11 +143,11 @@
         <img src="images/Logo.png" alt="JELD-WEN Logo" width="250" height="90">
         <h2>Canadian Egress Window Calculator</h2>
         <p class="definition">
-            <strong>Note:</strong> According to the <em>National Building Code of Canada 2020</em>, bedroom egress windows must provide an <strong>unobstructed opening</strong> of at least <strong>0.35 m² (3.77 ft²)</strong>, with no dimension less than <strong>380 mm (15 inches)</strong> in height or width.
+            <strong>Note:</strong> According to the <em>National Building Code of Canada 2020</em>, bedroom egress windows must provide an <strong>unobstructed opening</strong> of at least <strong>0.35 m² (3.77 ft²)</strong>, with no dimension less than <strong>380 mm (15 inches)</strong> in height or width. The window must be openable from the inside without the use of tools or special knowledge and must maintain the required opening during an emergency without additional support.
         </p>
 
         <label for="windowType">Window Type:</label>
-        <select id="windowType" onchange="updateGuidelines()">
+        <select id="windowType">
             <option value="casement">Casement</option>
             <option value="slider">Slider</option>
             <option value="awning">Awning</option>
@@ -129,8 +156,6 @@
             <option value="tilt-turn">Tilt & Turn</option>
             <option value="fixed">Fixed</option>
         </select>
-
-        <div id="guidelines" style="margin-top: 10px; font-size: 14px; color: #333;"></div>
 
         <label for="width">Width (inches):</label>
         <input type="number" id="width" min="0" step="0.1">
@@ -142,44 +167,6 @@
         <div class="result" id="egress-result"></div>
 
         <script>
-            const guidelines = {
-                "casement": [
-                    "The narrowest Casement Window which can be produced for Egress is 25 ¼" wide (adjust height accordingly).",
-                    "The shortest Casement Window which can be produced for Egress is 24 ¾" tall (adjust width accordingly)."
-                ],
-                "slider": [
-                    "The narrowest Slider Window which can be produced for Egress is 41" wide (adjust height accordingly).",
-                    "The shortest Slider Window which can be produced for Egress is 41" tall (adjust width accordingly)."
-                ],
-                "awning": [
-                    "Awning windows may not meet egress due to limited opening clearance.",
-                    "Even large awning windows often fail to provide the required clear opening."
-                ],
-                "single-hung": [
-                    "The narrowest Single Hung Window for Egress is approximately 36" wide (adjust height accordingly).",
-                    "The shortest Single Hung Window for Egress is approximately 60" tall (adjust width accordingly)."
-                ],
-                "double-hung": [
-                    "The narrowest Double Hung Window for Egress is approximately 36" wide (adjust height accordingly).",
-                    "The shortest Double Hung Window for Egress is approximately 60" tall (adjust width accordingly)."
-                ],
-                "tilt-turn": [
-                    "The narrowest Tilt & Turn Window for Egress is 25 ¼" wide (adjust height accordingly).",
-                    "The shortest Tilt & Turn Window for Egress is 24 ¾" tall (adjust width accordingly)."
-                ],
-                "fixed": [
-                    "❌ Fixed windows cannot be used for egress.",
-                    "They do not open and therefore cannot provide an escape route."
-                ]
-            };
-
-            function updateGuidelines() {
-                const type = document.getElementById("windowType").value;
-                const guideDiv = document.getElementById("guidelines");
-                const points = guidelines[type];
-                guideDiv.innerHTML = `<ul><li>${points[0]}</li><li>${points[1]}</li></ul>`;
-            }
-
             function egressCalculate() {
                 const width = parseFloat(document.querySelector('#width').value);
                 const height = parseFloat(document.querySelector('#height').value);
@@ -225,9 +212,6 @@
                     ${complianceMessage}
                 `;
             }
-
-            // Initialize guidelines on page load
-            document.addEventListener("DOMContentLoaded", updateGuidelines);
         </script>
     </div>
 </body>
