@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +12,8 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            max-width: 600px;
+            max-width: 900px;
+            width: 90%;
             margin: auto;
         }
 
@@ -107,16 +109,6 @@
             visibility: visible;
             opacity: 1;
         }
-
-        @media (max-width: 600px) {
-            .egress-calculator {
-                padding: 15px;
-            }
-
-            .egress-calculator button {
-                font-size: 15px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -124,11 +116,11 @@
         <img src="images/Logo.png" alt="JELD-WEN Logo" width="250" height="90">
         <h2>Canadian Egress Window Calculator</h2>
         <p class="definition">
-            <strong>Note:</strong> According to the <em>National Building Code of Canada 2020</em>, bedroom egress windows must provide an <strong>unobstructed opening</strong> of at least <strong>0.35 m² (3.77 ft²)</strong>, with no dimension less than <strong>380 mm (15 inches)</strong> in height or width. The window must be openable from the inside without the use of tools or special knowledge and must maintain the required opening during an emergency without additional support.
+            <strong>Note:</strong> According to the <em>National Building Code of Canada 2020</em>, bedroom egress windows must provide an <strong>unobstructed opening</strong> of at least <strong>0.35 m² (3.77 ft²)</strong>, with no dimension less than <strong>380 mm (15 inches)</strong> in height or width.
         </p>
 
         <label for="windowType">Window Type:</label>
-        <select id="windowType">
+        <select id="windowType" onchange="updateGuidelines()">
             <option value="casement">Casement</option>
             <option value="slider">Slider</option>
             <option value="awning">Awning</option>
@@ -137,6 +129,8 @@
             <option value="tilt-turn">Tilt & Turn</option>
             <option value="fixed">Fixed</option>
         </select>
+
+        <div id="guidelines" style="margin-top: 10px; font-size: 14px; color: #333;"></div>
 
         <label for="width">Width (inches):</label>
         <input type="number" id="width" min="0" step="0.1">
@@ -148,11 +142,49 @@
         <div class="result" id="egress-result"></div>
 
         <script>
+            const guidelines = {
+                "casement": [
+                    "The narrowest Casement Window which can be produced for Egress is 25 ¼" wide (adjust height accordingly).",
+                    "The shortest Casement Window which can be produced for Egress is 24 ¾" tall (adjust width accordingly)."
+                ],
+                "slider": [
+                    "The narrowest Slider Window which can be produced for Egress is 41" wide (adjust height accordingly).",
+                    "The shortest Slider Window which can be produced for Egress is 41" tall (adjust width accordingly)."
+                ],
+                "awning": [
+                    "Awning windows may not meet egress due to limited opening clearance.",
+                    "Even large awning windows often fail to provide the required clear opening."
+                ],
+                "single-hung": [
+                    "The narrowest Single Hung Window for Egress is approximately 36" wide (adjust height accordingly).",
+                    "The shortest Single Hung Window for Egress is approximately 60" tall (adjust width accordingly)."
+                ],
+                "double-hung": [
+                    "The narrowest Double Hung Window for Egress is approximately 36" wide (adjust height accordingly).",
+                    "The shortest Double Hung Window for Egress is approximately 60" tall (adjust width accordingly)."
+                ],
+                "tilt-turn": [
+                    "The narrowest Tilt & Turn Window for Egress is 25 ¼" wide (adjust height accordingly).",
+                    "The shortest Tilt & Turn Window for Egress is 24 ¾" tall (adjust width accordingly)."
+                ],
+                "fixed": [
+                    "❌ Fixed windows cannot be used for egress.",
+                    "They do not open and therefore cannot provide an escape route."
+                ]
+            };
+
+            function updateGuidelines() {
+                const type = document.getElementById("windowType").value;
+                const guideDiv = document.getElementById("guidelines");
+                const points = guidelines[type];
+                guideDiv.innerHTML = `<ul><li>${points[0]}</li><li>${points[1]}</li></ul>`;
+            }
+
             function egressCalculate() {
-                const width = parseFloat(document.querySelector('.egress-calculator #width').value);
-                const height = parseFloat(document.querySelector('.egress-calculator #height').value);
-                const type = document.querySelector('.egress-calculator #windowType').value;
-                const result = document.querySelector('.egress-calculator #egress-result');
+                const width = parseFloat(document.querySelector('#width').value);
+                const height = parseFloat(document.querySelector('#height').value);
+                const type = document.querySelector('#windowType').value;
+                const result = document.querySelector('#egress-result');
 
                 if (!width || !height) {
                     result.textContent = "Please enter both width and height.";
@@ -193,6 +225,9 @@
                     ${complianceMessage}
                 `;
             }
+
+            // Initialize guidelines on page load
+            document.addEventListener("DOMContentLoaded", updateGuidelines);
         </script>
     </div>
 </body>
