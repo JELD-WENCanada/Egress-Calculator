@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -68,13 +69,44 @@
 
         .egress-calculator .result {
             margin-top: 20px;
-            font-weight: bold;
-            color: #333;
+            padding: 15px;
+            border-radius: 6px;
+            background-color: #eef6f9;
+            border-left: 5px solid #1d446b;
+            font-size: 15px;
         }
 
         .egress-calculator .result span {
             display: block;
             margin-top: 10px;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1d446b;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position above the tooltip */
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
         }
 
         @media (max-width: 600px) {
@@ -114,6 +146,7 @@
         <input type="number" id="height" min="0" step="0.1">
 
         <button onclick="egressCalculate()">Check Egress Compliance</button>
+        <button onclick="printResult()">Print Result</button>
         <div class="result" id="egress-result"></div>
 
         <script>
@@ -161,6 +194,16 @@
                     <strong>Clear Opening Area:</strong> ${areaInSqInches.toFixed(2)} in² (${areaInSqFeet.toFixed(2)} ft²)<br>
                     ${complianceMessage}
                 `;
+            }
+
+            function printResult() {
+                const result = document.querySelector('.egress-calculator #egress-result').innerHTML;
+                const printWindow = window.open('', '', 'height=400,width=600');
+                printWindow.document.write('<html><head><title>Print Result</title></head><body>');
+                printWindow.document.write(result);
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                printWindow.print();
             }
         </script>
     </div>
