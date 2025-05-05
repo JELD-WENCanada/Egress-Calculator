@@ -153,7 +153,6 @@
             <option value="Awning">Awning</option>
             <option value="Single-hung">Single Hung</option>
             <option value="Double-hung">Double Hung</option>
-            <option value="Tilt-turn">Tilt & Turn</option>
             <option value="Fixed">Fixed</option>
         </select>
 
@@ -212,7 +211,7 @@
                 }
 
                 result.innerHTML = `
-                    <strong>Window Type:</strong> ${type.charAt(0).toUpperCase() + type.slice(1).replace("-", " ")}<br>
+                    <strong>Window Type:</strong> ${type.replace("-", " ").replace(/\w/g, char => char.toUpperCase())}<br>
                     <strong>Effective Opening:</strong> ${effectiveWidth.toFixed(1)}" x ${effectiveHeight.toFixed(1)}"<br>
                     <strong>Clear Opening Area:</strong> ${areaInSqInches.toFixed(2)} in² (${areaInSqFeet.toFixed(2)} ft²)<br>
                     ${complianceMessage}
@@ -222,4 +221,3 @@
     </div>
 </body>
 </html>
-
