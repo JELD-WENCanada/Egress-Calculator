@@ -170,11 +170,19 @@
             function egressCalculate() {
                 const width = parseFloat(document.querySelector('#width').value);
                 const height = parseFloat(document.querySelector('#height').value);
-                const type = document.querySelector('#windowType').value;
+                const type = document.querySelector('#windowType').value.toLowerCase(); // Normalize case
                 const result = document.querySelector('#egress-result');
 
                 if (!width || !height) {
                     result.textContent = "Please enter both width and height.";
+                    return;
+                }
+
+                if (type === "fixed") {
+                    result.innerHTML = `
+                        <strong>Window Type:</strong> Fixed<br>
+                        <span style='color:red'>❌ Fixed windows cannot be used for egress.</span>
+                    `;
                     return;
                 }
 
@@ -195,9 +203,7 @@
 
                 let complianceMessage = "";
 
-                if (type === "fixed") {
-                    complianceMessage = "<span style='color:red'>❌ Fixed windows cannot be used for egress.</span>";
-                } else if (type === "awning") {
+                if (type === "awning") {
                     complianceMessage = "<span style='color:orange'>⚠️ Awning windows may not meet egress requirements due to limited opening clearance.</span>";
                 } else if (meetsArea && meetsDimension) {
                     complianceMessage = "<span style='color:green'>✅ Meets Canadian egress requirements (NBC 2020).</span>";
@@ -206,7 +212,7 @@
                 }
 
                 result.innerHTML = `
-                    <strong>Window Type:</strong> ${type.replace("-", " ")}<br>
+                    <strong>Window Type:</strong> ${type.charAt(0).toUpperCase() + type.slice(1).replace("-", " ")}<br>
                     <strong>Effective Opening:</strong> ${effectiveWidth.toFixed(1)}" x ${effectiveHeight.toFixed(1)}"<br>
                     <strong>Clear Opening Area:</strong> ${areaInSqInches.toFixed(2)} in² (${areaInSqFeet.toFixed(2)} ft²)<br>
                     ${complianceMessage}
@@ -216,3 +222,4 @@
     </div>
 </body>
 </html>
+
