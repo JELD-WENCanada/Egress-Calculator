@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -148,6 +147,7 @@
 
         <label for="windowType">Window Type:</label>
         <select id="windowType" onchange="egressCalculate()">
+            <option value="" disabled selected>Select a window type</option>
             <option value="Casement">Casement</option>
             <option value="Slider">Slider</option>
             <option value="Awning">Awning</option>
@@ -170,6 +170,11 @@
                 const height = parseFloat(document.querySelector('#height').value);
                 const type = document.querySelector('#windowType').value.toLowerCase(); // Normalize case
                 const result = document.querySelector('#egress-result');
+
+                if (!type) {
+                    result.textContent = "Please select a window type.";
+                    return;
+                }
 
                 if (!width || !height) {
                     result.textContent = "Please enter both width and height.";
@@ -220,4 +225,5 @@
     </div>
 </body>
 </html>
+
 
