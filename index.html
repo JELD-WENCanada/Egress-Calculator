@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -156,19 +157,26 @@
             <option value="Fixed">Fixed</option>
         </select>
 
-        <label for="width">Width (inches):</label>
+        <label for="width">Width:</label>
         <input type="number" id="width" min="0" step="0.1" oninput="egressCalculate()">
 
-        <label for="height">Height (inches):</label>
+        <label for="height">Height:</label>
         <input type="number" id="height" min="0" step="0.1" oninput="egressCalculate()">
+
+        <label for="unit">Unit:</label>
+        <select id="unit" onchange="egressCalculate()">
+            <option value="in">Inches</option>
+            <option value="cm">Centimeters</option>
+        </select>
 
         <div class="result" id="egress-result"></div>
 
         <script>
             function egressCalculate() {
-                const width = parseFloat(document.querySelector('#width').value);
-                const height = parseFloat(document.querySelector('#height').value);
-                const type = document.querySelector('#windowType').value.toLowerCase(); // Normalize case
+                const widthInput = parseFloat(document.querySelector('#width').value);
+                const heightInput = parseFloat(document.querySelector('#height').value);
+                const unit = document.querySelector('#unit').value;
+                const type = document.querySelector('#windowType').value.toLowerCase();
                 const result = document.querySelector('#egress-result');
 
                 if (!type) {
@@ -176,10 +184,14 @@
                     return;
                 }
 
-                if (!width || !height) {
+                if (!widthInput || !heightInput) {
                     result.textContent = "Please enter both width and height.";
                     return;
                 }
+
+                // Convert cm to inches if needed
+                const width = unit === "cm" ? widthInput / 2.54 : widthInput;
+                const height = unit === "cm" ? heightInput / 2.54 : heightInput;
 
                 if (type === "fixed") {
                     result.innerHTML = `
@@ -209,13 +221,13 @@
                 if (type === "awning") {
                     complianceMessage = "<span style='color:orange'>⚠️ Awning windows may not meet egress requirements due to limited opening clearance.</span>";
                 } else if (meetsArea && meetsDimension) {
-                    complianceMessage = "<span style='color:green'>✅ Meets Canadian egress requirements (NBC 2020).</span>";
+                    complianceMessage = "<span style='color:green'>✅ Meets Canadian egress requirements (NBC 2020).</span><br><span style='color:blue'>For guidance only—check with your local municipality for specific requirements.</span>";
                 } else {
                     complianceMessage = "<span style='color:red'>❌ Does NOT meet Canadian egress requirements (NBC 2020).</span>";
                 }
 
                 result.innerHTML = `
-                    <strong>Window Type:</strong> ${type.replace("-", " ").replace(/\b\w/g, char => char.toUpperCase())}<br>
+                    <strong>Window Type:</strong> ${type.replace("-", " ").replace(/\w/g, char => char.toUpperCase())}<br>
                     <strong>Effective Opening:</strong> ${effectiveWidth.toFixed(1)}" x ${effectiveHeight.toFixed(1)}"<br>
                     <strong>Clear Opening Area:</strong> ${areaInSqInches.toFixed(2)} in² (${areaInSqFeet.toFixed(2)} ft²)<br>
                     ${complianceMessage}
@@ -225,5 +237,6 @@
     </div>
 </body>
 </html>
+
 
 
