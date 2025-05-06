@@ -147,7 +147,7 @@
         </p>
 
         <label for="windowType">Window Type:</label>
-        <select id="windowType">
+        <select id="windowType" onchange="egressCalculate()">
             <option value="Casement">Casement</option>
             <option value="Slider">Slider</option>
             <option value="Awning">Awning</option>
@@ -157,12 +157,11 @@
         </select>
 
         <label for="width">Width (inches):</label>
-        <input type="number" id="width" min="0" step="0.1">
+        <input type="number" id="width" min="0" step="0.1" oninput="egressCalculate()">
 
         <label for="height">Height (inches):</label>
-        <input type="number" id="height" min="0" step="0.1">
+        <input type="number" id="height" min="0" step="0.1" oninput="egressCalculate()">
 
-        <button onclick="egressCalculate()">Check Egress Compliance</button>
         <div class="result" id="egress-result"></div>
 
         <script>
@@ -211,7 +210,7 @@
                 }
 
                 result.innerHTML = `
-                    <strong>Window Type:</strong> ${type.replace("-", " ").replace(/\w/g, char => char.toUpperCase())}<br>
+                    <strong>Window Type:</strong> ${type.replace("-", " ").replace(/\b\w/g, char => char.toUpperCase())}<br>
                     <strong>Effective Opening:</strong> ${effectiveWidth.toFixed(1)}" x ${effectiveHeight.toFixed(1)}"<br>
                     <strong>Clear Opening Area:</strong> ${areaInSqInches.toFixed(2)} in² (${areaInSqFeet.toFixed(2)} ft²)<br>
                     ${complianceMessage}
@@ -221,3 +220,4 @@
     </div>
 </body>
 </html>
+
