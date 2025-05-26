@@ -171,7 +171,7 @@
         <div class="result" id="egress-result"></div>
 
         <script>
-            const lang = /\/fr-ca(\/|$)/i.test(window.location.pathname) ? "fr" : "en";
+            const lang = /\/fr-ca(\/|$)/i.test(window.location.pathname) || navigator.language.startsWith('fr') ? "fr" : "en";
 
             const translations = {
                 en: {
@@ -285,10 +285,7 @@
                 `;
             }
 
-            // ✅ Wait for DOM content to be fully loaded before applying language
-            document.addEventListener("DOMContentLoaded", function() {
-                applyLanguage();
-            });
+            applyLanguage();
         </script>
     </div>
 </body>
