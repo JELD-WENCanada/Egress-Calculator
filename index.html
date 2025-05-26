@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +5,6 @@
     <title>Egress Window Calculator (Canada)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <style>
-        /* Global box-sizing for consistent layout */
         *, *::before, *::after {
             box-sizing: border-box;
         }
@@ -146,14 +144,8 @@
         <img src="images/Logo.png" alt="JELD-WEN Logo" width="200" height="70">
         <h2 id="title">Canadian Egress Window Calculator</h2>
         <p class="definition" id="definition">
-            <strong>Note:</strong> According to the <em>National Building Code of Canada 2020</em>, bedroom egress windows must provide an <strong>unobstructed opening</strong> of at least <strong>0.35 m² (3.77 ft²)</strong>, with no dimension less than <strong>380 mm (15 inches)</strong> in height or width. The window must be openable from the inside without the use of tools or special knowledge and must maintain the required opening during an emergency without additional support.
+            <!-- Default English definition; will be updated by script -->
         </p>
-
-        <label for="language">Language:</label>
-        <select id="language" onchange="changeLanguage()">
-            <option value="en">English</option>
-            <option value="fr">Français</option>
-        </select>
 
         <label for="windowType" id="windowTypeLabel">Window Type:</label>
         <select id="windowType" onchange="egressCalculate()">
@@ -181,34 +173,56 @@
         <div class="result" id="egress-result"></div>
 
         <script>
-            function changeLanguage() {
-                const lang = document.querySelector('#language').value;
-                const elements = {
-                    title: document.querySelector('#title'),
-                    definition: document.querySelector('#definition'),
-                    windowTypeLabel: document.querySelector('#windowTypeLabel'),
-                    widthLabel: document.querySelector('#widthLabel'),
-                    heightLabel: document.querySelector('#heightLabel'),
-                    unitLabel: document.querySelector('#unitLabel')
-                };
+            const userLang = navigator.language || navigator.userLanguage;
+            const lang = userLang.startsWith('fr') ? 'fr' : 'en';
 
-                if (lang === 'fr') {
-                    elements.title.textContent = "Calculateur de Fenêtre de Sortie (Canada)";
-                    elements.definition.innerHTML = "<strong>Remarque :</strong> Selon le <em>Code national du bâtiment du Canada 2020</em>, les fenêtres de sortie des chambres doivent offrir une <strong>ouverture dégagée</strong> d'au moins <strong>0,35 m² (3,77 ft²)</strong>, avec une dimension minimale de <strong>380 mm (15 pouces)</strong> en hauteur ou en largeur. La fenêtre doit pouvoir être ouverte de l'intérieur sans utiliser d'outils ou de connaissances particulières et doit maintenir l'ouverture requise pendant une urgence sans support supplémentaire.";
-                    elements.windowTypeLabel.textContent = "Type de Fenêtre :";
-                    elements.widthLabel.textContent = "Largeur (pouces) :";
-                    elements.heightLabel.textContent = "Hauteur (pouces) :";
-                    elements.unitLabel.textContent = "Unité :";
-                } else {
-                    elements.title.textContent = "Canadian Egress Window Calculator";
-                    elements.definition.innerHTML = "<strong>Note:</strong> According to the <em>National Building Code of Canada 2020</em>, bedroom egress windows must provide an <strong>unobstructed opening</strong> of at least <strong>0.35 m² (3.77 ft²)</strong>, with no dimension less than <strong>380 mm (15 inches)</strong> in height or width. The window must be openable from the inside without the use of tools or special knowledge and must maintain the required opening during an emergency without additional support.";
-                    elements.windowTypeLabel.textContent = "Window Type:";
-                    elements.widthLabel.textContent = "Width (inches):";
-                    elements.heightLabel.textContent = "Height (inches):";
-                    elements.unitLabel.textContent = "Unit:";
+            const translations = {
+                en: {
+                    title: "Canadian Egress Window Calculator",
+                    definition: "<strong>Note:</strong> According to the <em>National Building Code of Canada 2020</em>, bedroom egress windows must provide an <strong>unobstructed opening</strong> of at least <strong>0.35 m² (3.77 ft²)</strong>, with no dimension less than <strong>380 mm (15 inches)</strong> in height or width. The window must be openable from the inside without the use of tools or special knowledge and must maintain the required opening during an emergency without additional support.",
+                    windowTypeLabel: "Window Type:",
+                    widthLabel: "Width (inches):",
+                    heightLabel: "Height (inches):",
+                    unitLabel: "Unit:",
+                    selectWindowType: "Please select a window type.",
+                    enterDimensions: "Please enter both width and height.",
+                    windowType: "Window Type",
+                    effectiveOpening: "Effective Opening",
+                    clearArea: "Clear Opening Area",
+                    notEgressFixed: "❌ Fixed windows cannot be used for egress.",
+                    cautionAwning: "⚠️ Awning windows may not meet egress requirements due to limited opening clearance.",
+                    passes: "✅ Meets Canadian egress requirements (NBC 2020).",
+                    guidance: "For guidance only—check with your local municipality for specific requirements.",
+                    fails: "❌ Does NOT meet Canadian egress requirements (NBC 2020)."
+                },
+                fr: {
+                    title: "Calculateur de Fenêtre de Sortie (Canada)",
+                    definition: "<strong>Remarque :</strong> Selon le <em>Code national du bâtiment du Canada 2020</em>, les fenêtres de sortie des chambres doivent offrir une <strong>ouverture dégagée</strong> d'au moins <strong>0,35 m² (3,77 ft²)</strong>, avec une dimension minimale de <strong>380 mm (15 pouces)</strong> en hauteur ou en largeur. La fenêtre doit pouvoir être ouverte de l'intérieur sans utiliser d'outils ou de connaissances particulières et doit maintenir l'ouverture requise pendant une urgence sans support supplémentaire.",
+                    windowTypeLabel: "Type de Fenêtre :",
+                    widthLabel: "Largeur (pouces) :",
+                    heightLabel: "Hauteur (pouces) :",
+                    unitLabel: "Unité :",
+                    selectWindowType: "Veuillez sélectionner un type de fenêtre.",
+                    enterDimensions: "Veuillez entrer la largeur et la hauteur.",
+                    windowType: "Type de Fenêtre",
+                    effectiveOpening: "Ouverture Effective",
+                    clearArea: "Surface d'Ouverture Dégagée",
+                    notEgressFixed: "❌ Les fenêtres fixes ne peuvent pas être utilisées pour la sortie.",
+                    cautionAwning: "⚠️ Les fenêtres à auvent peuvent ne pas répondre aux exigences de sortie en raison de l'espace d'ouverture limité.",
+                    passes: "✅ Répond aux exigences de sortie canadiennes (NBC 2020).",
+                    guidance: "À titre indicatif seulement—vérifiez auprès de votre municipalité locale pour des exigences spécifiques.",
+                    fails: "❌ Ne répond PAS aux exigences de sortie canadiennes (NBC 2020)."
                 }
+            };
 
-                egressCalculate();
+            function applyLanguage() {
+                const t = translations[lang];
+                document.getElementById('title').textContent = t.title;
+                document.getElementById('definition').innerHTML = t.definition;
+                document.getElementById('windowTypeLabel').textContent = t.windowTypeLabel;
+                document.getElementById('widthLabel').textContent = t.widthLabel;
+                document.getElementById('heightLabel').textContent = t.heightLabel;
+                document.getElementById('unitLabel').textContent = t.unitLabel;
             }
 
             function capitalizeWords(str) {
@@ -221,15 +235,15 @@
                 const unit = document.querySelector('#unit').value;
                 const type = document.querySelector('#windowType').value.toLowerCase();
                 const result = document.querySelector('#egress-result');
-                const lang = document.querySelector('#language').value;
+                const t = translations[lang];
 
                 if (!type) {
-                    result.textContent = lang === 'fr' ? "Veuillez sélectionner un type de fenêtre." : "Please select a window type.";
+                    result.textContent = t.selectWindowType;
                     return;
                 }
 
                 if (!widthInput || !heightInput) {
-                    result.textContent = lang === 'fr' ? "Veuillez entrer la largeur et la hauteur." : "Please enter both width and height.";
+                    result.textContent = t.enterDimensions;
                     return;
                 }
 
@@ -238,8 +252,8 @@
 
                 if (type === "fixed") {
                     result.innerHTML = `
-                        <strong>${lang === 'fr' ? "Type de Fenêtre" : "Window Type"}:</strong> ${capitalizeWords(type)}<br>
-                        <span style='color:red'>❌ ${lang === 'fr' ? "Les fenêtres fixes ne peuvent pas être utilisées pour la sortie." : "Fixed windows cannot be used for egress."}</span>
+                        <strong>${t.windowType}:</strong> ${capitalizeWords(type)}<br>
+                        <span style='color:red'>${t.notEgressFixed}</span>
                     `;
                     return;
                 }
@@ -262,24 +276,23 @@
                 let complianceMessage = "";
 
                 if (type === "awning") {
-                    complianceMessage = `<span style='color:orange'>⚠️ ${lang === 'fr' ? "Les fenêtres à auvent peuvent ne pas répondre aux exigences de sortie en raison de l'espace d'ouverture limité." : "Awning windows may not meet egress requirements due to limited opening clearance."}</span>`;
+                    complianceMessage = `<span style='color:orange'>${t.cautionAwning}</span>`;
                 } else if (meetsArea && meetsDimension) {
-                    complianceMessage = `<span style='color:green'>✅ ${lang === 'fr' ? "Répond aux exigences de sortie canadiennes (NBC 2020)." : "Meets Canadian egress requirements (NBC 2020)."}</span><br><span>${lang === 'fr' ? "À titre indicatif seulement—vérifiez auprès de votre municipalité locale pour des exigences spécifiques." : "For guidance only—check with your local municipality for specific requirements."}</span>`;
+                    complianceMessage = `<span style='color:green'>${t.passes}</span><br><span>${t.guidance}</span>`;
                 } else {
-                    complianceMessage = `<span style='color:red'>❌ ${lang === 'fr' ? "Ne répond PAS aux exigences de sortie canadiennes (NBC 2020)." : "Does NOT meet Canadian egress requirements (NBC 2020)."}</span>`;
+                    complianceMessage = `<span style='color:red'>${t.fails}</span>`;
                 }
 
                 result.innerHTML = `
-                    <strong>${lang === 'fr' ? "Type de Fenêtre" : "Window Type"}:</strong> ${capitalizeWords(type)}<br>
-                    <strong>${lang === 'fr' ? "Ouverture Effective" : "Effective Opening"}:</strong> ${effectiveWidth.toFixed(1)}" x ${effectiveHeight.toFixed(1)}"<br>
-                    <strong>${lang === 'fr' ? "Surface d'Ouverture Dégagée" : "Clear Opening Area"}:</strong> ${areaInSqInches.toFixed(2)} in² (${areaInSqFeet.toFixed(2)} ft²)<br>
+                    <strong>${t.windowType}:</strong> ${capitalizeWords(type)}<br>
+                    <strong>${t.effectiveOpening}:</strong> ${effectiveWidth.toFixed(1)}" x ${effectiveHeight.toFixed(1)}"<br>
+                    <strong>${t.clearArea}:</strong> ${areaInSqInches.toFixed(2)} in² (${areaInSqFeet.toFixed(2)} ft²)<br>
                     ${complianceMessage}
                 `;
             }
+
+            applyLanguage();
         </script>
     </div>
 </body>
 </html>
-
-
-
