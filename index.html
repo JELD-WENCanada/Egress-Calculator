@@ -94,34 +94,6 @@
             margin-top: 5px;
         }
 
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            cursor: pointer;
-        }
-
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 200px;
-            background-color: #1d446b;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 5px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -100px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
-
         @media (max-width: 400px) {
             .egress-calculator {
                 padding: 10px;
@@ -171,7 +143,11 @@
         <div class="result" id="egress-result"></div>
 
         <script>
-            const lang = /\/fr-ca(\/|$)/i.test(window.location.pathname) || navigator.language.startsWith('fr') ? "fr" : "en";
+            // Get ?lang=fr from query string
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryLang = urlParams.get('lang');
+
+            const lang = queryLang === "fr" ? "fr" : "en";
 
             const translations = {
                 en: {
@@ -279,7 +255,7 @@
 
                 result.innerHTML = `
                     <strong>${t.windowType}:</strong> ${capitalizeWords(type)}<br>
-                    <strong>${t.effectiveOpening}:</strong> ${effectiveWidth.toFixed(1)}" x ${effectiveHeight.toFixed(1)}"<br>
+                    <strong>${t.effectiveOpening}:</strong> ${effectiveWidth.toFixed(1)}\" x ${effectiveHeight.toFixed(1)}\"<br>
                     <strong>${t.clearArea}:</strong> ${areaInSqInches.toFixed(2)} in² (${areaInSqFeet.toFixed(2)} ft²)<br>
                     ${complianceMessage}
                 `;
