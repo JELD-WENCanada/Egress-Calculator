@@ -279,13 +279,16 @@
 
                 result.innerHTML = `
                     <strong>${t.windowType}:</strong> ${capitalizeWords(type)}<br>
-                    <strong>${t.effectiveOpening}:</strong> ${effectiveWidth.toFixed(1)}\" x ${effectiveHeight.toFixed(1)}\"<br>
+                    <strong>${t.effectiveOpening}:</strong> ${effectiveWidth.toFixed(1)}" x ${effectiveHeight.toFixed(1)}"<br>
                     <strong>${t.clearArea}:</strong> ${areaInSqInches.toFixed(2)} in² (${areaInSqFeet.toFixed(2)} ft²)<br>
                     ${complianceMessage}
                 `;
             }
 
-            applyLanguage();
+            // ✅ Wait for DOM content to be fully loaded before applying language
+            document.addEventListener("DOMContentLoaded", function() {
+                applyLanguage();
+            });
         </script>
     </div>
 </body>
