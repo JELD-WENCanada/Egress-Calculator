@@ -119,7 +119,11 @@
       <option value="Casement">Casement</option>
       <option value="Slider">Slider</option>
       <option value="Single-hung">Single Hung</option>
+      <option value="Awning">Awning</option>
+      <option value="Fixed">Fixed</option>
     </select>
+
+    <div id="sizeFields">
 
     <div id="seriesRow" style="display:none">
       <label for="series" id="seriesLabel">Series:</label>
@@ -144,6 +148,7 @@
       <option value="in">Inches</option>
       <option value="cm">Centimeters</option>
     </select>
+    </div><!-- /sizeFields -->
 
     <div class="result" id="egress-result"></div>
   </div>
@@ -177,8 +182,20 @@
     };
 
     // Series for which an egress formula is not yet defined.
+    // Keyed by `${type}|${series}` since the same series name (e.g. JWC7500)
+    // may have a formula for one window type but not another.
     // Selecting one of these will display a notice instead of calculating.
-    const SERIES_NO_FORMULA = new Set(['ES3500', 'JWC6500', 'Builder Series']);
+    const SERIES_NO_FORMULA = new Set([
+      'slider|ES3500',
+      'slider|JWC6500',
+      'slider|Builder Series',
+      'casement|JWC8500',
+      'single-hung|JWC7500',
+    ]);
+
+    // Window types that cannot be used as egress windows.
+    // For these we only show a disclaimer and do not collect dimensions.
+    const NON_EGRESS_TYPES = new Set(['awning', 'fixed']);
 
     // Debounce helper
     function debounce(func, delay) {
@@ -200,6 +217,7 @@
     const litesRow = document.getElementById('litesRow');
     const widthLabelEl = document.getElementById('widthLabel');
     const heightLabelEl = document.getElementById('heightLabel');
+    const sizeFieldsEl = document.getElementById('sizeFields');
     const resultEl = document.getElementById('egress-result');
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -224,6 +242,7 @@
         sliderTooLarge: "❌ Slider windows cannot exceed 144\" wide × 72\" tall (3658 mm × 1829 mm).",
         hungTooLarge: "❌ Hung windows cannot exceed 144\" wide × 80\" tall (3658 mm × 2032 mm).",
         noFormula: "ℹ️ Egress formula for this series is not yet available. Please contact JELD-WEN for guidance.",
+        nonEgressDisclaimer: "⚠️ This window type cannot be used as an egress window. Awning and Fixed windows do not provide a code-compliant unobstructed opening under NBC 2025 and must not be specified for bedroom egress.",
         windowType: "Window Type",
         effectiveOpening: "Effective Opening",
         clearArea: "Clear Opening Area",
@@ -250,6 +269,7 @@
         sliderTooLarge: "❌ Les fenêtres coulissantes ne peuvent dépasser 144 po de largeur × 72 po de hauteur (3658 mm × 1829 mm).",
         hungTooLarge: "❌ Les fenêtres à guillotine ne peuvent dépasser 144 po de largeur × 80 po de hauteur (3658 mm × 2032 mm).",
         noFormula: "ℹ️ La formule de sortie pour cette série n'est pas encore disponible. Veuillez contacter JELD-WEN.",
+        nonEgressDisclaimer: "⚠️ Ce type de fenêtre ne peut pas être utilisé comme fenêtre de sortie. Les fenêtres à auvent et fixes ne fournissent pas une ouverture dégagée conforme au CNB 2025 et ne doivent pas être spécifiées pour une sortie de chambre.",
         windowType: "Type de Fenêtre",
         effectiveOpening: "Ouverture Effective",
         clearArea: "Surface d'Ouverture Dégagée",
@@ -280,9 +300,13 @@
 
     function updateOptionalFields() {
       const type = typeEl.value.toLowerCase();
-      litesRow.style.display = (type === 'slider') ? '' : 'none';
+      const isNonEgress = NON_EGRESS_TYPES.has(type);
 
-      const options = SERIES_OPTIONS[type] || [];
+      // Hide size inputs and series/lites for non-egress types — we only show a disclaimer.
+      sizeFieldsEl.style.display = isNonEgress ? 'none' : '';
+      litesRow.style.display = (!isNonEgress && type === 'slider') ? '' : 'none';
+
+      const options = isNonEgress ? [] : (SERIES_OPTIONS[type] || []);
       seriesRow.style.display = options.length ? '' : 'none';
       // Repopulate options for the current window type
       seriesEl.innerHTML = '';
@@ -323,6 +347,14 @@
         return;
       }
 
+      // Non-egress window types: show disclaimer only, no calculation.
+      if (NON_EGRESS_TYPES.has(type)) {
+        resultEl.innerHTML =
+          `<strong>${t.windowType}:</strong> ${capitalizeWords(type)}<br>` +
+          `<span style='color:#b00020'>${t.nonEgressDisclaimer}</span>`;
+        return;
+      }
+
       if (
         !Number.isFinite(widthInput) || widthInput <= 0 ||
         !Number.isFinite(heightInput) || heightInput <= 0
@@ -334,9 +366,9 @@
       const widthMm = toMm(widthInput, unit);
       const heightMm = toMm(heightInput, unit);
 
-      // Short-circuit if the selected series has no defined formula yet.
+      // Short-circuit if the selected (type, series) combination has no defined formula yet.
       const selectedSeries = seriesEl.value;
-      if (selectedSeries && SERIES_NO_FORMULA.has(selectedSeries)) {
+      if (selectedSeries && SERIES_NO_FORMULA.has(`${type}|${selectedSeries}`)) {
         resultEl.innerHTML =
           `<strong>${t.windowType}:</strong> ${capitalizeWords(type)} (${selectedSeries})<br>` +
           `<span style='color:#1d446b'>${t.noFormula}</span>`;
@@ -389,9 +421,6 @@
           const lites = Number.isFinite(litesRaw) && litesRaw >= 2 ? litesRaw : 2;
           effectiveWidthMm = widthMm / lites;
         }
-      } else if (type === 'single-hung') {
-        // Only one sash opens; effective opening is the sash height (~½ overall).
-        effectiveHeightMm = heightMm / 2;
       } else if (type === 'casement') {
         // Default casement allowance (75 mm) to account for sash frame.
         // Replace with series-specific formula when provided.
