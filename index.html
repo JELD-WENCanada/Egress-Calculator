@@ -124,6 +124,22 @@
       <option value="Fixed">Fixed</option>
     </select>
 
+    <div id="hardwareRow" style="display:none">
+      <label for="hardware" id="hardwareLabel">Hardware:</label>
+      <select id="hardware">
+        <option value="standard">Standard hinges</option>
+        <option value="egress">Egress hinges</option>
+      </select>
+    </div>
+
+    <div id="litesRow" style="display:none">
+      <label for="lites" id="litesLabel">Number of operable lites:</label>
+      <select id="lites">
+        <option value="2">2 (XO / OX)</option>
+        <option value="3">3 (XOX)</option>
+      </select>
+    </div>
+
     <label for="width" id="widthLabel">Width (inches):</label>
     <input type="number" id="width" min="0" step="0.1" />
 
@@ -140,6 +156,25 @@
   </div>
 
   <script>
+    // ---------- Constants (NBC 2020) ----------
+    const IN_TO_MM = 25.4;
+    const MM_TO_IN = 1 / IN_TO_MM;
+    const MIN_AREA_M2 = 0.35;
+    const MIN_AREA_MM2 = MIN_AREA_M2 * 1_000_000; // 350,000 mm²
+    const MIN_DIM_MM = 380;
+
+    // Casement size cap: 36" wide x 78" tall
+    const CASEMENT_MAX_WIDTH_MM = 36 * IN_TO_MM;
+    const CASEMENT_MAX_HEIGHT_MM = 78 * IN_TO_MM;
+
+    // Slider size cap: 144" wide x 72" tall
+    const SLIDER_MAX_WIDTH_MM = 144 * IN_TO_MM;
+    const SLIDER_MAX_HEIGHT_MM = 72 * IN_TO_MM;
+
+    // Hung size cap: 144" wide x 80" tall (single-hung & double-hung)
+    const HUNG_MAX_WIDTH_MM = 144 * IN_TO_MM;
+    const HUNG_MAX_HEIGHT_MM = 80 * IN_TO_MM;
+
     // Debounce helper
     function debounce(func, delay) {
       let timeout;
@@ -154,6 +189,12 @@
     const heightEl = document.getElementById('height');
     const typeEl = document.getElementById('windowType');
     const unitEl = document.getElementById('unit');
+    const hardwareEl = document.getElementById('hardware');
+    const hardwareRow = document.getElementById('hardwareRow');
+    const litesEl = document.getElementById('lites');
+    const litesRow = document.getElementById('litesRow');
+    const widthLabelEl = document.getElementById('widthLabel');
+    const heightLabelEl = document.getElementById('heightLabel');
     const resultEl = document.getElementById('egress-result');
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -163,44 +204,68 @@
       en: {
         title: "Canadian Egress Window Calculator",
         definition:
-          "<strong>Note:</strong> According to the <em>National Building Code of Canada 2020</em>, bedroom egress windows must provide an <strong>unobstructed opening</strong> of at least <strong>0.35 m² (3.77 ft²)</strong>, with no dimension less than <strong>380 mm (15 inches)</strong> in height or width.",
+          "<strong>Note:</strong> According to the <em>National Building Code of Canada 2025</em>, bedroom egress windows must provide an <strong>unobstructed opening</strong> of at least <strong>0.35 m² (3.77 ft²)</strong>, with no dimension less than <strong>380 mm (15 inches)</strong> in height or width.",
         windowTypeLabel: "Window Type:",
-        widthLabel: "Width (inches):",
-        heightLabel: "Height (inches):",
+        widthLabelIn: "Width (inches):",
+        heightLabelIn: "Height (inches):",
+        widthLabelCm: "Width (cm):",
+        heightLabelCm: "Height (cm):",
         unitLabel: "Unit:",
+        hardwareLabel: "Hardware:",
+        hardwareStandard: "Standard hinges",
+        hardwareEgress: "Egress hinges",
+        litesLabel: "Number of operable lites:",
         selectWindowType: "Please select a window type.",
-        enterDimensions: "Please enter both width and height.",
+        enterDimensions: "Please enter a valid width and height (greater than 0).",
+        casementTooLarge: "❌ Casement windows cannot exceed 36\" wide × 78\" tall (914 mm × 1981 mm).",
+        sliderTooLarge: "❌ Slider windows cannot exceed 144\" wide × 72\" tall (3658 mm × 1829 mm).",
+        hungTooLarge: "❌ Hung windows cannot exceed 144\" wide × 80\" tall (3658 mm × 2032 mm).",
         windowType: "Window Type",
         effectiveOpening: "Effective Opening",
         clearArea: "Clear Opening Area",
         notEgressFixed: "❌ Fixed windows cannot be used for egress.",
-        cautionAwning:
-          "⚠️ Awning windows may not meet egress requirements due to limited opening clearance.",
-        passes: "✅ Meets Canadian egress requirements (NBC 2020).",
+        notEgressAwning: "❌ Awning windows cannot be used for egress.",
+        noteCasementStandard:
+          "ℹ️ Effective width reduced by ~75 mm to account for standard hinge throw and sash frame.",
+        noteCasementEgress:
+          "ℹ️ Effective width reduced by ~25 mm to account for egress hinges and sash frame.",
+        passes: "✅ PASS — Meets Canadian egress requirements (NBC 2025).",
         guidance:
           "For guidance only—check with your local municipality for specific requirements.",
-        fails: "❌ Does NOT meet Canadian egress requirements (NBC 2020).",
+        fails: "❌ FAIL — Does NOT meet Canadian egress requirements (NBC 2025).",
       },
       fr: {
         title: "Calculateur de Fenêtre de Sortie (Canada)",
         definition:
-          "<strong>Remarque :</strong> Selon le <em>Code national du bâtiment du Canada 2020</em>, les fenêtres de sortie doivent offrir une <strong>ouverture dégagée</strong> d'au moins <strong>0,35 m² (3,77 ft²)</strong>, sans dimension inférieure à <strong>380 mm (15 pouces)</strong> en hauteur ou en largeur.",
+          "<strong>Remarque :</strong> Selon le <em>Code national du bâtiment du Canada 2025</em>, les fenêtres de sortie doivent offrir une <strong>ouverture dégagée</strong> d'au moins <strong>0,35 m² (3,77 ft²)</strong>, sans dimension inférieure à <strong>380 mm (15 pouces)</strong> en hauteur ou en largeur.",
         windowTypeLabel: "Type de Fenêtre :",
-        widthLabel: "Largeur (pouces) :",
-        heightLabel: "Hauteur (pouces) :",
+        widthLabelIn: "Largeur (pouces) :",
+        heightLabelIn: "Hauteur (pouces) :",
+        widthLabelCm: "Largeur (cm) :",
+        heightLabelCm: "Hauteur (cm) :",
         unitLabel: "Unité :",
+        hardwareLabel: "Quincaillerie :",
+        hardwareStandard: "Charnières standard",
+        hardwareEgress: "Charnières de sortie",
+        litesLabel: "Nombre de vantaux ouvrants :",
         selectWindowType: "Veuillez sélectionner un type de fenêtre.",
-        enterDimensions: "Veuillez entrer la largeur et la hauteur.",
+        enterDimensions: "Veuillez entrer une largeur et une hauteur valides (supérieures à 0).",
+        casementTooLarge: "❌ Les fenêtres à battant ne peuvent dépasser 36 po de largeur × 78 po de hauteur (914 mm × 1981 mm).",
+        sliderTooLarge: "❌ Les fenêtres coulissantes ne peuvent dépasser 144 po de largeur × 72 po de hauteur (3658 mm × 1829 mm).",
+        hungTooLarge: "❌ Les fenêtres à guillotine ne peuvent dépasser 144 po de largeur × 80 po de hauteur (3658 mm × 2032 mm).",
         windowType: "Type de Fenêtre",
         effectiveOpening: "Ouverture Effective",
         clearArea: "Surface d'Ouverture Dégagée",
         notEgressFixed: "❌ Les fenêtres fixes ne peuvent pas être utilisées pour la sortie.",
-        cautionAwning:
-          "⚠️ Les fenêtres à auvent peuvent ne pas répondre aux exigences de sortie.",
-        passes: "✅ Répond aux exigences de sortie canadiennes (NBC 2020).",
+        notEgressAwning: "❌ Les fenêtres à auvent ne peuvent pas être utilisées pour la sortie.",
+        noteCasementStandard:
+          "ℹ️ Largeur effective réduite d'environ 75 mm pour tenir compte de la course des charnières standard et du cadre.",
+        noteCasementEgress:
+          "ℹ️ Largeur effective réduite d'environ 25 mm pour tenir compte des charnières de sortie et du cadre.",
+        passes: "✅ CONFORME — Répond aux exigences de sortie canadiennes (NBC 2025).",
         guidance:
           "À titre indicatif seulement — vérifiez auprès de votre municipalité locale.",
-        fails: "❌ Ne répond PAS aux exigences de sortie canadiennes (NBC 2020).",
+        fails: "❌ NON CONFORME — Ne répond PAS aux exigences de sortie canadiennes (NBC 2025).",
       },
     };
 
@@ -209,9 +274,25 @@
       document.getElementById('title').textContent = t.title;
       document.getElementById('definition').innerHTML = t.definition;
       document.getElementById('windowTypeLabel').textContent = t.windowTypeLabel;
-      document.getElementById('widthLabel').textContent = t.widthLabel;
-      document.getElementById('heightLabel').textContent = t.heightLabel;
       document.getElementById('unitLabel').textContent = t.unitLabel;
+      document.getElementById('hardwareLabel').textContent = t.hardwareLabel;
+      document.getElementById('litesLabel').textContent = t.litesLabel;
+      hardwareEl.options[0].textContent = t.hardwareStandard;
+      hardwareEl.options[1].textContent = t.hardwareEgress;
+      applyUnitLabels();
+    }
+
+    function applyUnitLabels() {
+      const t = translations[lang];
+      const isCm = unitEl.value === 'cm';
+      widthLabelEl.textContent = isCm ? t.widthLabelCm : t.widthLabelIn;
+      heightLabelEl.textContent = isCm ? t.heightLabelCm : t.heightLabelIn;
+    }
+
+    function updateOptionalFields() {
+      const type = typeEl.value.toLowerCase();
+      hardwareRow.style.display = (type === 'casement') ? '' : 'none';
+      litesRow.style.display = (type === 'slider') ? '' : 'none';
     }
 
     function capitalizeWords(str) {
@@ -221,9 +302,19 @@
         .join(' ');
     }
 
+    function toMm(value, unit) {
+      return unit === 'cm' ? value * 10 : value * IN_TO_MM;
+    }
+
+    function formatDim(mm, unit) {
+      return unit === 'cm'
+        ? (mm / 10).toFixed(1) + ' cm'
+        : (mm * MM_TO_IN).toFixed(1) + '"';
+    }
+
     function egressCalculate() {
-      const widthInput = parseFloat(widthEl.value);
-      const heightInput = parseFloat(heightEl.value);
+      const widthInput = Number(widthEl.value);
+      const heightInput = Number(heightEl.value);
       const type = typeEl.value.toLowerCase();
       const unit = unitEl.value;
       const t = translations[lang];
@@ -233,64 +324,115 @@
         return;
       }
 
-      if (!widthInput || !heightInput) {
+      if (
+        !Number.isFinite(widthInput) || widthInput <= 0 ||
+        !Number.isFinite(heightInput) || heightInput <= 0
+      ) {
         resultEl.textContent = t.enterDimensions;
         return;
       }
 
-      const width = unit === 'cm' ? widthInput / 2.54 : widthInput;
-      const height = unit === 'cm' ? heightInput / 2.54 : heightInput;
+      const widthMm = toMm(widthInput, unit);
+      const heightMm = toMm(heightInput, unit);
 
       if (type === 'fixed') {
-        resultEl.innerHTML = `<strong>${t.windowType}:</strong> ${capitalizeWords(type)}<br><span style='color:red'>${t.notEgressFixed}</span>`;
+        resultEl.innerHTML =
+          `<strong>${t.windowType}:</strong> ${capitalizeWords(type)}<br>` +
+          `<span style='color:red'>${t.notEgressFixed}</span>`;
         return;
       }
 
-      let effectiveWidth = width;
-      let effectiveHeight = height;
-
-      if (['slider', 'single-hung', 'double-hung'].includes(type)) {
-        effectiveWidth = width / 2;
+      if (type === 'awning') {
+        resultEl.innerHTML =
+          `<strong>${t.windowType}:</strong> ${capitalizeWords(type)}<br>` +
+          `<span style='color:red'>${t.notEgressAwning}</span>`;
+        return;
       }
 
-      const areaInSqInches = effectiveWidth * effectiveHeight;
-      const areaInSqFeet = areaInSqInches / 144;
-      const minAreaInSqInches = 543.6;
-      const minDimension = 15;
+      if (
+        type === 'casement' &&
+        (widthMm > CASEMENT_MAX_WIDTH_MM || heightMm > CASEMENT_MAX_HEIGHT_MM)
+      ) {
+        resultEl.innerHTML =
+          `<strong>${t.windowType}:</strong> ${capitalizeWords(type)}<br>` +
+          `<span style='color:red'>${t.casementTooLarge}</span>`;
+        return;
+      }
 
-      const meetsArea = areaInSqInches >= minAreaInSqInches;
+      if (
+        type === 'slider' &&
+        (widthMm > SLIDER_MAX_WIDTH_MM || heightMm > SLIDER_MAX_HEIGHT_MM)
+      ) {
+        resultEl.innerHTML =
+          `<strong>${t.windowType}:</strong> ${capitalizeWords(type)}<br>` +
+          `<span style='color:red'>${t.sliderTooLarge}</span>`;
+        return;
+      }
+
+      if (
+        (type === 'single-hung' || type === 'double-hung') &&
+        (widthMm > HUNG_MAX_WIDTH_MM || heightMm > HUNG_MAX_HEIGHT_MM)
+      ) {
+        resultEl.innerHTML =
+          `<strong>${t.windowType}:</strong> ${capitalizeWords(type)}<br>` +
+          `<span style='color:red'>${t.hungTooLarge}</span>`;
+        return;
+      }
+
+      let effectiveWidthMm = widthMm;
+      let effectiveHeightMm = heightMm;
+      let hardwareNote = '';
+      const isEgressHardware = hardwareEl.value === 'egress';
+
+      if (type === 'slider') {
+        const litesRaw = Math.floor(Number(litesEl.value));
+        const lites = Number.isFinite(litesRaw) && litesRaw >= 2 ? litesRaw : 2;
+        effectiveWidthMm = widthMm / lites;
+      } else if (type === 'single-hung' || type === 'double-hung') {
+        // Only one sash opens; effective opening is the sash height (~½ overall).
+        effectiveHeightMm = heightMm / 2;
+      } else if (type === 'casement') {
+        const allowanceMm = isEgressHardware ? 25 : 75;
+        effectiveWidthMm = Math.max(0, widthMm - allowanceMm);
+        hardwareNote = isEgressHardware ? t.noteCasementEgress : t.noteCasementStandard;
+      }
+
+      const areaMm2 = effectiveWidthMm * effectiveHeightMm;
+      const areaM2 = areaMm2 / 1_000_000;
+      const areaIn2 = areaMm2 * MM_TO_IN * MM_TO_IN;
+      const areaFt2 = areaIn2 / 144;
+
+      const meetsArea = areaMm2 >= MIN_AREA_MM2;
       const meetsDimension =
-        effectiveWidth >= minDimension && effectiveHeight >= minDimension;
+        effectiveWidthMm >= MIN_DIM_MM && effectiveHeightMm >= MIN_DIM_MM;
 
       let complianceMessage = '';
-
-      if (type === 'awning') {
-        complianceMessage = `<span style='color:orange'>${t.cautionAwning}</span>`;
-      } else if (meetsArea && meetsDimension) {
-        complianceMessage = `<span style='color:green'>${t.passes}</span><br><span>${t.guidance}</span>`;
+      if (meetsArea && meetsDimension) {
+        complianceMessage =
+          `<span style='color:green'>${t.passes}</span><br>` +
+          `<span>${t.guidance}</span>`;
       } else {
         complianceMessage = `<span style='color:red'>${t.fails}</span>`;
       }
 
-      resultEl.innerHTML = `
-        <strong>${t.windowType}:</strong> ${capitalizeWords(type)}<br>
-        <strong>${t.effectiveOpening}:</strong> ${effectiveWidth.toFixed(
-        1
-      )}" x ${effectiveHeight.toFixed(1)}"<br>
-        <strong>${t.clearArea}:</strong> ${areaInSqInches.toFixed(
-        2
-      )} in² (${areaInSqFeet.toFixed(2)} ft²)<br>
-        ${complianceMessage}
-      `;
+      resultEl.innerHTML =
+        `<strong>${t.windowType}:</strong> ${capitalizeWords(type)}<br>` +
+        `<strong>${t.effectiveOpening}:</strong> ${formatDim(effectiveWidthMm, unit)} x ${formatDim(effectiveHeightMm, unit)}<br>` +
+        `<strong>${t.clearArea}:</strong> ${areaM2.toFixed(3)} m² (${areaFt2.toFixed(2)} ft²)<br>` +
+        (hardwareNote ? `<span>${hardwareNote}</span><br>` : '') +
+        complianceMessage;
     }
 
     applyLanguage();
+    updateOptionalFields();
 
     // Attach debounced listeners
     widthEl.addEventListener('input', debounce(egressCalculate, 300));
     heightEl.addEventListener('input', debounce(egressCalculate, 300));
-    typeEl.addEventListener('change', egressCalculate);
-    unitEl.addEventListener('change', egressCalculate);
+    litesEl.addEventListener('change', egressCalculate);
+    typeEl.addEventListener('change', () => { updateOptionalFields(); egressCalculate(); });
+    unitEl.addEventListener('change', () => { applyUnitLabels(); egressCalculate(); });
+    hardwareEl.addEventListener('change', egressCalculate);
   </script>
 </body>
 </html>
